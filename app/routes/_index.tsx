@@ -1,5 +1,4 @@
 import type { MetaFunction } from '@remix-run/node';
-import { useNavigate } from '@remix-run/react';
 
 import { useEffect, useState } from 'react';
 
@@ -22,8 +21,6 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
-  const navigate = useNavigate();
-
   const [open, setOpen] = useState(true);
   const [input, setInput] = useState('');
   const [searchType, setSearchType] = useState<{ resourceType: "Local" | "Pessoa", resourceParam: string } | null>(null);
@@ -49,13 +46,13 @@ export default function Index() {
           Ctrl+K
         </kbd>
       </p>
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog loop shouldFilter={(searchType === null)} open={open} onOpenChange={setOpen}>
         <CommandInput
           placeholder="Digite um comando ou busque..."
           value={input}
           searchType={searchType}
-          onKeyUp={(e) => {
-            if (e.key == 'Backspace' && searchType !== null) {
+          onKeyDown={(e) => {
+            if (e.key == 'Backspace' && searchType !== null && input.trim().length === 0) {
               setSearchType(null)
             }
           }}
@@ -65,20 +62,29 @@ export default function Index() {
           <CommandList>
             <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
             <CommandGroup heading="Locais">
-              <CommandItem onSelect={() => setSearchType({ resourceType: "Local", resourceParam: "Cidade" })}>Buscar local por cidade</CommandItem>
-              <CommandItem onSelect={() => setSearchType({ resourceType: "Local", resourceParam: "CEP" })}>
+              <CommandItem onSelect={() => { setSearchType({ resourceType: "Local", resourceParam: "Cidade" }); setInput(""); }}>Buscar local por cidade</CommandItem>
+              <CommandItem onSelect={() => { setSearchType({ resourceType: "Local", resourceParam: "CEP" }); setInput(""); }}>
                 Buscar local por CEP
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Configurações">
-              <CommandItem onSelect={() => navigate('/profiles')}>
+              <CommandItem onSelect={() => alert('navigate /profiles')}>
                 Profile
                 <CommandShortcut>P</CommandShortcut>
               </CommandItem>
             </CommandGroup>
           </CommandList>) : (
-          <CommandList><CommandEmpty>Buscando em {searchType.resourceType} por {searchType.resourceParam}</CommandEmpty></CommandList>
+          <CommandList>
+            <CommandGroup heading={searchType.resourceType}>
+              <CommandItem onSelect={() => {
+                if (input.trim().length !== 0) {
+                  alert(`GET /${searchType.resourceType}/?${searchType.resourceParam}=${input}`)
+                }
+              }}>Buscando em {searchType.resourceType} por {searchType.resourceParam}
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
         )}
       </CommandDialog>
     </div>

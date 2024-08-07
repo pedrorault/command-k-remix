@@ -1,14 +1,6 @@
 import type { MetaFunction } from '@remix-run/node';
 import { Link, useNavigate } from '@remix-run/react';
 
-import {
-  Calculator,
-  Calendar,
-  CreditCard,
-  Settings,
-  Smile,
-  User,
-} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import {

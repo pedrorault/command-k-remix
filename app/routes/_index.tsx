@@ -1,10 +1,9 @@
 import type { MetaFunction } from '@remix-run/node';
-import { Link, useNavigate } from '@remix-run/react';
+import { useNavigate } from '@remix-run/react';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -12,7 +11,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
+  CommandShortcut
 } from '~/components/ui/command';
 
 export const meta: MetaFunction = () => {
@@ -27,16 +26,13 @@ export default function Index() {
 
   const [open, setOpen] = useState(true);
   const [input, setInput] = useState('');
+  const [searchType, setSearchType] = useState<{ resourceType: "Local" | "Pessoa", resourceParam: string } | null>(null);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((open) => !open);
-      }
-      if (e.key === 'p' && !e.metaKey && !e.ctrlKey && !e.shiftKey && !open) {
-        e.preventDefault();
-        navigate('/profiles');
       }
     };
 
@@ -57,27 +53,33 @@ export default function Index() {
         <CommandInput
           placeholder="Digite um comando ou busque..."
           value={input}
+          searchType={searchType}
+          onKeyUp={(e) => {
+            if (e.key == 'Backspace' && searchType !== null) {
+              setSearchType(null)
+            }
+          }}
           onValueChange={(e) => setInput(e)}
         />
-        {/* loop precisa ser adicionado no componente do shadcn */}
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Locais">
-            {/* Ver sobre pages e nested items */}
-            {/* https://github.com/pacocoursey/cmdk?tab=readme-ov-file#nested-items */}
-            <CommandItem>Buscar local por cidade</CommandItem>
-            <CommandItem onSelect={() => setInput('CEP=')}>
-              Buscar local por CEP
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Configurações">
-            <CommandItem onSelect={() => navigate('/profiles')}>
-              Profile
-              <CommandShortcut>P</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
+        {searchType === null ? (
+          <CommandList>
+            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+            <CommandGroup heading="Locais">
+              <CommandItem onSelect={() => setSearchType({ resourceType: "Local", resourceParam: "Cidade" })}>Buscar local por cidade</CommandItem>
+              <CommandItem onSelect={() => setSearchType({ resourceType: "Local", resourceParam: "CEP" })}>
+                Buscar local por CEP
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup heading="Configurações">
+              <CommandItem onSelect={() => navigate('/profiles')}>
+                Profile
+                <CommandShortcut>P</CommandShortcut>
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>) : (
+          <CommandList><CommandEmpty>Buscando em {searchType.resourceType} por {searchType.resourceParam}</CommandEmpty></CommandList>
+        )}
       </CommandDialog>
     </div>
   );
